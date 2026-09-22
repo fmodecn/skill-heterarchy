@@ -1,5 +1,5 @@
 {
-  "name": "skill-heterarchy",
+  "name": "@fmode/skill-heterarchy",
   "version": "0.0.10",
   "description": "内异层认知协同 — 在单一 Hermes Agent 内部分化多心智并行驱动 CC，主控不阻塞、阻塞自愈。实操技能。",
   "main": "./lib/index.mjs",
@@ -31,5 +31,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fmodecn/skill-heterarchy.git"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
