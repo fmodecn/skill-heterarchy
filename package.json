@@ -1,7 +1,7 @@
 {
   "name": "skill-heterarchy",
-  "version": "1.0.0",
-  "description": "内异层认知协同 — 单一Agent主体内部多心智分化与自治协商。Delegate是对外派活，Heterarchy是对内分思。",
+  "version": "0.0.10",
+  "description": "内异层认知协同 — 在单一 Hermes Agent 内部分化多心智并行驱动 CC，主控不阻塞、阻塞自愈。实操技能。",
   "main": "./lib/index.mjs",
   "exports": {
     ".": {

@@ -1,200 +1,318 @@
 ---
 name: skill-heterarchy
-description: "内异层认知协同 — 单一Agent主体内部多心智分化与自治协商。Delegate是对外派活，Heterarchy是对内分思。"
-version: 1.0.0
+description: "内异层认知协同 — 在单一 Hermes Agent 内部，分化多心智并行驱动 Claude Code，主控不阻塞、子单元互校验、阻塞自愈。实操技能。"
+version: 0.0.10
 author: Yuyang001 (FmodeAgent)
 license: MIT
-tags: [heterarchy, cognitive-collaboration, hermes, claude-code, dispatch, paradigm]
+tags: [heterarchy, dispatch, claude-code, hermes-tools, cognitive-collaboration, parallel]
 ---
 
-# skill-heterarchy 内异层认知协同
+# skill-heterarchy — 对内分思实操技能
 
-> Delegate 是「对外派活」，Heterarchy 是「对内分思」。
-> 人类学理论迁移：从社会异层制 → 个体认知异层制
-
----
-
-## 一、核心定位（与其他所有技能的区别）
-
-**skill-heterarchy 是「同一个 Agent 主体内部的分布式认知协作能力」**
-
-它不是对外任务分发、不是对外委派、不是多设备团队聊天，而是：
-
-**一个完整 Agent 本体，在不拆分外部实体、不新建外部服务、不跨节点的前提下，内生分化多个半自治认知子单元，在主体内部并行思考、互相协商、互相校验、互防阻塞、持续进度同步。**
-
-| 对比维度 | Delegate 委派 | Dispatch 分发 | Team Collab 团队 | Heterarchy 异层 |
-|---|---|---|---|---|
-| 关系 | 主从层级 | 吞吐调度 | 外部社交 | **同体内生** |
-| 目标 | 交付任务 | 批量执行 | 跨实体协作 | **认知分化与协同** |
-| 主控是否阻塞 | 等待返回 | 不关心 | 异步 | **不阻塞、持续汇总** |
-| 子单元是否通信 | 隔离，不交互 | 隔离，不交互 | 外部社交 | **横向对话、互审** |
-| 适用场景 | 派活给外部 | 任务队列 | 多设备多人 | **单体内多心智并行审议** |
-
-**一句话精准定义：Delegate 是「对外派活」，Heterarchy 是「对内分思」。**
+> Delegate 是对外派活，Heterarchy 是对内分思。
+> 本技能用 Hermes 底层工具在单一 Agent 内部分化多心智并行思考。
+> 加载方式：`skill_view(name='skill-heterarchy')`
 
 ---
 
-## 二、理论底层（人类学 + 认知科学）
+## 零、何时触发本技能
 
-人类高级认知并非单线程中央集权思考，而是：**单一自我内部，并行存在多个半独立心智子系统，彼此竞争、协商、校验、制衡，最终合成统一意识输出。**
+当你（Hermes）收到**一个复杂任务，明显可以拆成多个独立维度并行处理**时：
 
-Heterarchy（异层制）原用于描述「无固定上下级的对等自治社群结构」，本技能将其**从社会层级理论迁移至个体认知理论**：
+| 触发词 | 示例 |
+|--------|------|
+| "多个主题需要完成" | 课程的四个主题、PPT多章节 |
+| "同时做这几件事" | 调研+写代码+出图 |
+| "这几个部分需要..." | 多模块开发、多文案撰写 |
+| "尽量并行" | 用户明确要求加速 |
 
-**Intra-entity Heterarchy = 实体内异层认知**
+**判断原则：** 如果任务可以自然拆成 2-5 个独立认知维度，且每个维度需要整体思考而不是简单脚本执行 → **启用 Heterarchy**。
 
-- **一体多元**：一个认知主体，内生多个差异化认知单元
-- **无固定主从**：动态协商、动态权责、动态收敛
-- **内部分布式审议**：多视角并行推理、互审纠错
-- **阻塞自愈**：内部社交式沟通治理，解决单线程卡死
-
----
-
-## 三、在 Hermes Agent 体系中的映射
-
-本技能在 Hermes Agent 中的具体实现：
-
-| 理论概念 | Hermes/CC 映射 |
-|---|---|
-| 主体（Entity） | Hermes Agent 本体 |
-| 认知子单元 | 后台并行运行的 Claude Code / Codex / Kimi Code 进程 |
-| 认知分化 | 同一任务的不同维度分给不同 CC 并行处理 |
-| 横向协商 | CC 产出的互相引用、交叉验证（主题二引用主题一的结论） |
-| 阻塞自愈 | 60s 健康检查检测死进程；连败检测切换通道 |
-| 进度同步 | notify_on_complete + 独立 log + 主 Agent 持续汇总 |
-| 心智收敛 | 主 Agent 验收各 CC 产出的交叉一致性 |
+**何时不用：**
+- 单一步骤命令 → 直接 `terminal()` 或 `execute_code()`
+- 纯对外输出（发消息、写简单文件）→ 直接本技能完成
+- 需要跨 Profile 协作 → 用 `kanban_create` 委派，不是 Heterarchy
 
 ---
 
-## 四、核心解决的问题
+## 一、任务拆解（认知分化 — Hermes 自己做）
 
-| 问题 | Heterarchy 解法 |
-|---|---|
-| 单线程思考卡死/循环推理 | 多心智并行，一个卡了另一个继续推进 |
-| 视角单一/逻辑盲区 | 多维度并行审议，互相补全 |
-| 沟通低效/主从反复请示 | 内部横向协商，无需轮询主控 |
-| 进度黑盒/用户盲等 | 多心智持续上报增量进展 |
+这是唯一不能交给 CC 的步骤。Hermes 必须亲自：
+1. 理解用户真实需求
+2. 识别可并行的独立维度（每个维度 = 一个独立认知子单元）
+3. 判断子单元之间是否有依赖关系
+4. 确定项目工作目录（每个 CC 进程必须在正确的 git 仓库根目录启动）
 
----
-
-## 五、标准操作流程
+**实操模板（Hermes 的思考过程）：**
 
 ```
-用户提出复杂任务
-  │
-  ├→ ① 认知拆解：主控分析任务，识别可并行的独立认知维度
-  │
-  ├→ ② 心智分化：为每个维度写任务书（inline素材+纪律+验收）
-  │      每个任务书 = 一个独立认知子单元
-  │
-  ├→ ③ 并行启动：同时 spawn 多个 CC 进程
-  │      每个进程 = 一个半自治认知子单元
-  │      绝对路径 /opt/data/npm-global/bin/claude
-  │      独立log /tmp/cc-xxx.log
-  │
-  ├→ ④ 阻塞监控：60s健康检查 + 独立log监活
-  │      pgrep -f "claude -p"  → 存活子单元计数
-  │      日志不为空且CPU在增长
-  │
-  ├→ ⑤ 横向协商（可选）：一个子单元的产出成为另一个的输入
-  │      如 主题一的架构 → 主题二的衔接
-  │
-  ├→ ⑥ 心智收敛：主控验收各子单元产出
-  │      git log 检查commit
-  │      Content-Type 验证
-  │      URL 200 验证
-  │
-  └→ ⑦ 统一输出：合并交付
+收到："四个主题的 HTML PPT 需要图文并茂增强"
+
+拆解：
+├→ 主题一：数字分身（独立 → 无前置依赖）
+├→ 主题二：Harness（独立 → 无前置依赖）
+├→ 主题三：Loop（独立 → 无前置依赖）
+├→ 主题四：RSI（独立 → 无前置依赖）
+└→ 依赖：无（四主题可完全并行）
+
+项目根目录：/opt/data/git-repos/skill-present
+CC 必须在项目根目录启动，否则读不到 CLAUDE.md 的项目规则。
 ```
 
 ---
 
-## 六、技术实现模板
+## 二、任务书编写（心智分化）
 
+每个认知子单元需要一份独立的任务书，包含：
+
+```
+1. 背景上下文（用户原始需求）
+2. 本次要做什么（明确范围，不要多做）
+3. 要保留什么（已有的内容别动）
+4. inline 素材（路径、关键描述）
+5. 纪律约束：
+   - 框架不可改
+   - 自绘 SVG 保留
+   - 案例 CDN 图优先用已有
+   - skill-image 只用于核心架构图/场景图
+6. 验收标准（git commit、Content-Type 验证、URL 200）
+7. 禁止事项（不要重写、不要改标题、不要改结构）
+```
+
+任务书写入临时文件 `/tmp/cc-xxx-task.md`，用 `cat` 管道喂入 CC，不用 `$(cat)` 避免路径问题：
+
+**正确姿势：**
 ```bash
-# 1. 认知分化：写多个任务书
-cat > /tmp/cc-subject-a.md << 'EOF'
-[含 inline 素材 + 纪律 + 验收标准]
-EOF
+cat /tmp/cc-xxx-task.md | /opt/data/npm-global/bin/claude -p --dangerously-skip-permissions > /tmp/cc-xxx.log 2>&1 &
+```
 
-cat > /tmp/cc-subject-b.md << 'EOF'
-[...]
-EOF
+**错误姿势（踩过坑）：**
+```bash
+# 不要用 $(cat file) —— 文件路径在后台进程可能不同
+# 不要省略绝对路径 —— exit 127 找不到 claude
+```
 
-# 2. 并行启动（每一心智一个独立进程）
-export PATH="/opt/data/npm-global/bin:$PATH"
-cd /opt/data/git-repos/<项目>
+---
 
-/opt/data/npm-global/bin/claude -p \
-  --dangerously-skip-permissions \
-  "$(cat /tmp/cc-subject-a.md)" \
-  > /tmp/cc-subject-a.log 2>&1 &
+## 三、Hermes 协同工具调用表（核心实操）
 
-/opt/data/npm-global/bin/claude -p \
-  --dangerously-skip-permissions \
-  "$(cat /tmp/cc-subject-b.md)" \
-  > /tmp/cc-subject-b.log 2>&1 &
+### 3.1 启动心智 — terminal + background + notify
 
-# 3. 阻塞监控（60s后检查存活）
-sleep 60
-if pgrep -f "claude -p" | wc -l | grep -q "[1-9]"; then
-  echo "✅ $N 个认知子单元存活"
-else
-  echo "❗ 所有子单元死亡，需要救活"
-fi
+```python
+# Hermes 代码中：
+terminal(
+    command=f"""
+    export PATH="/opt/data/npm-global/bin:$PATH"
+    cd {project_root}
+    cat {task_file_path} | /opt/data/npm-global/bin/claude \\
+      -p --dangerously-skip-permissions \\
+      > {log_path} 2>&1
+    """,
+    background=True,
+    notify=True,
+    timeout=1800,
+    workdir=project_root
+)
+# → 返回 session_id 用于后续监控
+```
 
-# 4. 收敛验收
-git log --oneline | head -5      # 检查commit
-for url in $(grep -o 'https://[^"'"'"']*\.png' *.html); do
-  CT=$(curl -s -m 10 -o /dev/null -w "%{content_type}" "$url")
+### 3.2 阻塞监控 — process_manage + sleep
+
+```python
+# 启动后 60s 首次健康检查
+terminal("sleep 60 && pgrep -f 'claude -p' | wc -l", timeout=90)
+
+# 或主动轮询
+tool_call(calls=[{"name": "process_manage", "arguments": {"action": "list"}}])
+# → 检查 uptime_seconds 是否在增长
+# → 检查 output_preview 是否为空
+```
+
+### 3.3 心智收敛 — git log + curl Content-Type
+
+```python
+# 检查是否 commit
+terminal("cd {repo} && git log --oneline -3", timeout=10)
+
+# 验证图片 Content-Type（重要！只查 HTTP 200 会被 404 首页骗）
+terminal(f"""
+for url in $(grep -roh 'https://fmode.cn[^"'"'"' )]*\\.png' {repo}/*.html 2>/dev/null | sort -u); do
+  CT=$(curl -s -m 10 -o /dev/null -w "%{{content_type}}" "$url")
   [[ "$CT" == image/* ]] || echo "❌ 图裂: $CT $url"
-done
+done""", timeout=30)
+```
+
+### 3.4 横向协商（可选）— 前一子单元的产物成为后一子单元的输入
+
+```python
+# 如果主题一的 commit 包含架构图，主题二需要引用
+terminal("cd {repo} && git diff HEAD~1 --name-only", timeout=10)
+# 读文件内容作为 inline 素材塞进主题二的任务书
+read_file(path="{repo}/path/to/architecture.md")
+```
+
+### 3.5 模型配置检查
+
+```python
+# 检查 settings.json 确保模型名正确
+# 用户钦点：Hermes=deepseek/deepseek-v4.1-flash, CC=deepseek/deepseek-v4.1-flash[1m]
+terminal("cat {project_root}/.claude/settings.json", timeout=5)
+# 如发现模型名不对，patch 修正
 ```
 
 ---
 
-## 七、恢复矩阵（阻塞自愈）
+## 四、派发策略决策树
 
-| 症状 | 诊断 | 处置 |
-|---|---|---|
-| exit 127（claude找不到） | process list 无进程 | 用绝对路径重派 |
-| exit 1（模型503/401） | 查log尾部 | 检查settings.json模型名和token |
-| 超时无通知 | process list + git log | 有产物就收敛，无产物缩小重派 |
-| 空日志+exit 0 | 假成功（command not found） | 用绝对路径+stdin重派 |
-| 连败3次同域 | 该任务形态与CC不兼容 | 停止重派，主Agent亲手或拆原子步骤 |
+```
+收到复杂任务
+│
+├→ 可以拆成 2-5 个独立维度？
+│   ├→ 否 → 单一 CC 进程处理 或 本 Agent 直接完成
+│   └→ 是 → 继续
+│
+├→ 子单元之间有依赖关系？
+│   ├→ 是 → 拓扑排序：先做无依赖的，串行分批
+│   │   ├→ 所有独立 → 全并行（最多 5 个同时）
+│   │   └→ 部分依赖 → 分批并行：依赖关系跨批次传递
+│   └→ 否 → 全并行启动
+│
+├→ 每个子单元的工作量？
+│   ├→ 简单（< 50 行代码/单页）→ 不启 CC，本 Agent 直接写
+│   ├→ 中等（需要完整思考/调研/创作）→ 独立 CC 进程
+│   └→ 复杂（需要跨文件多模块/项目级）→ 优先用 kanban_create 委派给 fullstack profile
+│
+├→ 项目目录正确吗？
+│   ├→ 每个 CC 必须在项目根目录启动
+│   └→ 错目录 → CC 读不到 CLAUDE.md → 规则丢失 → 出次品
+│
+└→ 启动后：
+    ├→ 60s 后检查存活
+    ├→ 存活 → 等待 notify → 收敛验收
+    └→ 全死 → 执行恢复流程
+```
 
 ---
 
-## 八、与现有体系的关系
+## 五、恢复流程（阻塞自愈 — 实操版）
 
-```
-技能生态位置
-├── delegate_task       → 对外派活（跨实体、跨容器）
-├── dispatch            → 任务吞吐调度（队列管理）
-├── team-collab         → 跨设备多Agent外部协作
-└── skill-heterarchy    → ★ 对内分思（本技能）
-                            ├── 底层复用 delegate、dispatch 原语
-                            ├── 但重新定义协作语义：不做任务交付，只做内部认知分工
-                            └── Hermes Agent 主沟通协调 → CC 进程 = 半自治认知单元
+一旦 `process_manage(action="list")` 显示所有进程已退出，按以下顺序处理：
+
+### 5.1 查日志尾巴
+
+```python
+terminal(f"tail -30 {log_path}", timeout=10)
 ```
 
-本技能是这四者中**唯一关注「单一主体内部心智效率」**的。其余三个均涉及外部实体。
+### 5.2 根据错误分类处理
+
+| 日志症状 | 诊断 | 处置 |
+|----------|------|------|
+| `command not found: claude` 或 exit 127 | claude 不在 PATH | 用 `/opt/data/npm-global/bin/claude` 绝对路径 |
+| `503 No available channel` 或 exit 1 | 模型渠道不可用 | 检查 `~/.claude/settings.json` 模型名（少 `deepseek/` 前缀会 503） |
+| `401` 或 `Not logged in` | Token 失效 | 检查 ANTHROPIC_AUTH_TOKEN=$FMODE_API_KEY |
+| 日志为空 + exit 0 | 假成功 | 从 `$(cat)` 改 `cat pipe`方式重派 |
+| 日志有内容但 exit 1 | 任务执行中出错 | 读日志末尾判断：模型退火 / 文件读写错 / 权限问题 |
+| 通知没来、长时间无响应 | 进程阻塞 | `pgrep -f claude` 如果还在跑则等待；否则杀进程重派 |
+
+### 5.3 重派策略
+
+```python
+# 1. 如果是"续做"（之前的部分产物可用）
+#    在新的任务书开头写明：
+#    "已完成：xxx（state） 继续做：yyy（未完成部分）"
+
+# 2. 如果是"从零重做"（完全失败）
+#    缩小范围：大任务拆小
+#    禁用 CC 的某些能力：机器产出内容需要再确认
+
+# 3. 连败 3 次同域 → 停止 CC 重试
+#    本 Agent 直接处理 或 拆成更细的原子指令
+```
 
 ---
 
-## 九、验证方法
+## 六、完整实操流程（以 V6 四主题图文增强为例）
 
-### 简单测试：多心智并行
-```bash
-# 启动两个 CC 并行做同一件事的不同维度
-# 验证：1.两个进程都活着 2.独立log都有内容 3.产物互相补充不冲突
+```
+Step 1: 认知拆解
+Hermes 消化用户需求："四个主题需要图文并茂增强，框架不动，加图"
+→ 四主题可完全并行，项目根目录=skill-present
+
+Step 2: 心智分化  
+Hermes 为每个主题编写独立任务书（/tmp/cc-v6-0x-resume.md）
+每份包含：当前 commit hash + 结构框架 + 纪律 + 验收标准
+
+Step 3: 并行启动
+terminal(background=True, notify=True, workdir=skill-present,
+  command=f"cat /tmp/cc-v6-01-resume.md | /opt/data/npm-global/bin/claude -p --dangerously-skip-permissions > /tmp/cc-v6-01-r2.log 2>&1")
+terminal(background=True, notify=True, workdir=skill-present,
+  command=f"cat /tmp/cc-v6-02-resume.md | ...")  # 主题二
+terminal(background=True, notify=True, workdir=skill-present,
+  command=f"cat /tmp/cc-v6-03-resume.md | ...")  # 主题三
+terminal(background=True, notify=True, workdir=skill-present,
+  command=f"cat /tmp/cc-v6-04-resume.md | ...")  # 主题四
+
+Step 4: 阻塞自愈（首次 60s 后）
+process_manage(action="list") → 检查所有子单元存活
+
+Step 5: 心智收敛（逐个子单元 notify）
+每个 notify 到达：
+  └→ git log --oneline 检查 commit →
+  └→ curl Content-Type 验证图片 →
+  └→ 记录产出摘要
+
+Step 6: 统一交付
+push 所有 commit → OBS sync → CDN 刷新 → URL 验证 → 发用户
 ```
 
-### 阻塞自愈测试
-```bash
-# 启动一个会产生503错误的模型名 → 验证恢复矩阵自动触发
+---
+
+## 七、常见陷阱（踩坑记录）
+
+### 7.1 任务书喂入方式
+- ❌ `claude -p "$(cat task.md)"` → 路径丢失，后台进程找不到文件
+- ✅ `cat task.md | claude -p` → 管道直送，无文件路径依赖
+
+### 7.2 项目根目录
+- ❌ 在父目录启动 CC → CC 读不到 `.claude/rules/`
+- ✅ 必须在 git 项目根目录启动（读得到 CLAUDE.md + rules + settings.json）
+
+### 7.3 图片验证只看 200
+- ❌ `curl -o /dev/null -w "%{http_code}"` → 200 可能是 404 首页
+- ✅ `curl -o /dev/null -w "%{content_type}"` → 必须是 `image/*`
+
+### 7.4 版本号
+- ❌ 跳 1.0.0、5.0.0 大版本
+- ✅ 0.0.1 → 0.0.12 → 0.0.99 → 0.1.1 小步迭代
+
+### 7.5 配置 files 字段
+- ❌ 不设 `files: ["lib/", "bin/", ...]` → npm publish 把无关文件全打包
+- ✅ 精确声明要发布的文件
+
+---
+
+## 八、技能与本 Agent 内置工具的关系
+
+本技能**不替代** Hermes 内置工具，而是**编排**它们：
+
+```
+Hermes 收到任务
+│
+├→ skill-heterarchy（本技能）→ 决策是否启用异层认知
+│   └→ 认知分化 → 写任务书
+│
+├→ terminal（Hermes 工具）→ 后台启动 CC 进程
+├→ process_manage → 监控存活
+├→ read_file / patch / git → 收敛验证
+├→ web_search → 前置调研
+└→ delegate_task → 轻量子任务（与 Heterarchy 可组合使用）
 ```
 
-### 收敛测试
-```bash
-# 两个子单元产出后，主Agent验收合并 → 交付物完整无反工
-```
+**何时用 delegate_task 而不是 Heterarchy？**
+- 子任务是"帮我查点东西"（轻量检索）→ `delegate_task`
+- 子任务是"完整思考 + 产出可交付物" → Heterarchy CC
+
+**何时用 kanban_create 而不是 Heterarchy？**
+- 任务需要跨 Profile 的独立 MCP 环境 → `kanban_create`
+- 任务在本 Agent 的能力范围内，只是需要并行 → Heterarchy
