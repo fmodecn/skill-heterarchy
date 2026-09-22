@@ -1,0 +1,12 @@
+{
+  "name": "skill-heterarchy",
+  "version": "1.0.0",
+  "description": "\u5185\u5f02\u5c42\u8ba4\u77e5\u534f\u540c",
+  "skills": [
+    {
+      "name": "skill-heterarchy",
+      "path": "skills/skill-heterarchy/SKILL.md"
+    }
+  ],
+  "install": "npx --yes skill-heterarchy@latest workspace"
+}
